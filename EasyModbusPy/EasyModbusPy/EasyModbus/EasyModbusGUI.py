@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 import tkinter
 from tkinter import *
 from tkinter.ttk import *
-import ModbusClient
+import ModbusClient # @UnresolvedImport
 from pickletools import string1
 from turtledemo.__main__ import font_sizes
 from builtins import int
@@ -30,19 +32,19 @@ class EasyModbusGUI(tkinter.Frame):
         readOperationsLabel.grid(row = 0, column = 0)
         
         #Button Read Coils
-        self.readCoils = tkinter.Button(self, text="Read Coils (FC1)", width=25, command=self.ReadCoils)
+        self.readCoils = tkinter.Button(self, text="Read Coils (FC1)", width=25, command=self.__ReadCoils)
         self.readCoils.grid(row = 4, column = 0, padx = 20, pady = 6, columnspan=2)
         
         #Button Read Discrete Inputs
-        self.readDiscreteInputs = tkinter.Button(self, text="Read Discrete Inputs (FC2)", width=25, command=self.ReadDiscreteInputs)
+        self.readDiscreteInputs = tkinter.Button(self, text="Read Discrete Inputs (FC2)", width=25, command=self.__ReadDiscreteInputs)
         self.readDiscreteInputs.grid(row = 5, column = 0, padx = 20, pady = 6, columnspan=2)
         
         #Button Read Holding Registers
-        self.readHoldingRegisters = tkinter.Button(self, text="Read Holding Registers (FC3)", width=25, command=self.ReadHoldingRegisters)
+        self.readHoldingRegisters = tkinter.Button(self, text="Read Holding Registers (FC3)", width=25, command=self.__ReadHoldingRegisters)
         self.readHoldingRegisters.grid(row = 6, column = 0, padx = 20, pady = 6, columnspan=2)
  
         #Button Read Input Registers
-        self.readInputRegisters = tkinter.Button(self, text="Read Input Registers (FC4)", width=25, command=self.ReadInputRegisters)
+        self.readInputRegisters = tkinter.Button(self, text="Read Input Registers (FC4)", width=25, command=self.__ReadInputRegisters)
         self.readInputRegisters.grid(row = 7, column = 0, padx = 20, pady = 6, columnspan=2)       
         
         #label for IP Addresses
@@ -107,7 +109,7 @@ class EasyModbusGUI(tkinter.Frame):
         datatype.grid(row = 25, column = 0,  sticky=tkinter.W)       
 
         #Combobox to selct the type of variable to write 
-        lst1 = ['Coils (bool)','Holding Registers (bool)']
+        lst1 = ['Coils (bool)','Holding Registers (word)']
         self.variableDatatype = StringVar(self)
         self.variableDatatype.set('Coils (bool)')
         self.variableDatatype.trace('w',self.datatypeChanged)
@@ -185,95 +187,111 @@ class EasyModbusGUI(tkinter.Frame):
     def onReverse(self):
         self.name.set(self.name.get()[::-1])
       
-    def ReadCoils(self):
-        modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
-        if (not modbusClient.isConnected()):
-            modbusClient.Connect()
-        coils = modbusClient.ReadCoils(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
-        self.responseTextField.delete('1.0', END)
-        for coil in coils:
-            if (coil == FALSE):
-                response = "FALSE"
-            else:
-                response = "TRUE"
-            
-            self.responseTextField.insert(tkinter.END, response  + "\n")
+    def __ReadCoils(self):
+        try:
+            modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
+            if (not modbusClient.isConnected()):
+                modbusClient.Connect()
+            coils = modbusClient.ReadCoils(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
+            self.responseTextField.delete('1.0', END)
+            for coil in coils:
+                if (coil == FALSE):
+                    response = "FALSE"
+                else:
+                    response = "TRUE"
+                
+                self.responseTextField.insert(tkinter.END, response  + "\n")
+        except Exception as e:
+            tkinter.messagebox.showerror('Exception Reading coils from Server', str(e))
+        finally:
+            modbusClient.close() 
         
-        modbusClient.close() 
-        
-    def ReadDiscreteInputs(self):
-        modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
-        if (not modbusClient.isConnected()):
-            modbusClient.Connect()
-        discrInputs = modbusClient.ReadDiscreteInputs(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
-        self.responseTextField.delete('1.0', END)
-        for inp in discrInputs:
-            if (inp == FALSE):
-                response = "FALSE"
-            else:
-                response = "TRUE"
-            
-            self.responseTextField.insert(tkinter.END, response  + "\n")
-        
-        modbusClient.close() 
+    def __ReadDiscreteInputs(self):
+        try:
+            modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
+            if (not modbusClient.isConnected()):
+                modbusClient.Connect()
+            discrInputs = modbusClient.ReadDiscreteInputs(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
+            self.responseTextField.delete('1.0', END)
+            for inp in discrInputs:
+                if (inp == FALSE):
+                    response = "FALSE"
+                else:
+                    response = "TRUE"
+                
+                self.responseTextField.insert(tkinter.END, response  + "\n")
+        except Exception as e:
+            tkinter.messagebox.showerror('Exception Reading discrete inputs from Server', str(e))
+        finally:
+            modbusClient.close() 
    
-    def ReadHoldingRegisters(self):
-        modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
-        if (not modbusClient.isConnected()):
-            modbusClient.Connect()
-        holdingRegisters = modbusClient.ReadHoldingRegisters(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
-        self.responseTextField.delete('1.0', END)
-        for register in holdingRegisters:
- 
+    def __ReadHoldingRegisters(self):
+        try:
+            modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
+            if (not modbusClient.isConnected()):
+                modbusClient.Connect()
+            holdingRegisters = modbusClient.ReadHoldingRegisters(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
+            self.responseTextField.delete('1.0', END)
+            for register in holdingRegisters:
+     
+                
+                self.responseTextField.insert(tkinter.END, str(register)  + "\n")
+        except Exception as e:
+            tkinter.messagebox.showerror('Exception Reading holding registers from Server', str(e))
+        
+        finally:
+            modbusClient.close()   
+        
+    def __ReadInputRegisters(self):
+        try:
+            modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
+            if (not modbusClient.isConnected()):
+                modbusClient.Connect()
+            inputRegisters = modbusClient.ReadInputRegisters(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
+            self.responseTextField.delete('1.0', END)
+            for register in inputRegisters:
+                
+                self.responseTextField.insert(tkinter.END, str(register)  + "\n")
             
-            self.responseTextField.insert(tkinter.END, str(register)  + "\n")
-        
-        modbusClient.close()   
-        
-    def ReadInputRegisters(self):
-        modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
-        if (not modbusClient.isConnected()):
-            modbusClient.Connect()
-        inputRegisters = modbusClient.ReadInputRegisters(int(self.startingAddress.get()) - 1, int(self.quantity.get())) 
-        self.responseTextField.delete('1.0', END)
-        for register in inputRegisters:
-            
-            self.responseTextField.insert(tkinter.END, str(register)  + "\n")
-        
-        modbusClient.close()   
+            modbusClient.close()   
+        except Exception as e:
+            tkinter.messagebox.showerror('Exception Reading input Registers from Server', str(e))
       
     def __writeValuesToServer(self):
-        modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
-        if (not modbusClient.isConnected()):
-            modbusClient.Connect()
-        numberOfLines = (int(self.requestTextField.index('end').split('.')[0]) - 2)
-        if (self.variableDatatype.get()  == 'Coils (bool)'):
-            if (numberOfLines > 1):
-                valueToWrite = list()
-                for i in range(1, numberOfLines+1):
-                    textFieltValues = str(self.requestTextField.get(str(i)+".0", str(i+1)+".0")[:-1])
-                    if "TRUE" in textFieltValues:           #String comparison contains some ""Null" symbol
-                        valueToWrite.append(1)
+        try:
+            modbusClient = ModbusClient.ModbusClient(self.ipAddressEntry.get() ,int(self.portEntry.get()))
+            if (not modbusClient.isConnected()):
+                modbusClient.Connect()
+            numberOfLines = (int(self.requestTextField.index('end').split('.')[0]) - 2)
+            if (self.variableDatatype.get()  == 'Coils (bool)'):
+                if (numberOfLines > 1):
+                    valueToWrite = list()
+                    for i in range(1, numberOfLines+1):
+                        textFieltValues = str(self.requestTextField.get(str(i)+".0", str(i+1)+".0")[:-1])
+                        if "TRUE" in textFieltValues:           #String comparison contains some ""Null" symbol
+                            valueToWrite.append(1)
+                        else:
+                            valueToWrite.append(0)
+                    modbusClient.WriteMultipleCoils(int(self.startingAddressWrite.get()) - 1, valueToWrite)
+                else:              
+                    textFieltValues = str(self.requestTextField.get('1.0', END)[:-1])
+                    if "TRUE" in textFieltValues:               #String comparison contains some ""Null" symbol
+                        dataToSend = 1
                     else:
-                        valueToWrite.append(0)
-                modbusClient.WriteMultipleCoils(int(self.startingAddressWrite.get()) - 1, valueToWrite)
-            else:              
-                textFieltValues = str(self.requestTextField.get('1.0', END)[:-1])
-                if "TRUE" in textFieltValues:               #String comparison contains some ""Null" symbol
-                    dataToSend = 1
-                else:
-                    dataToSend = 0
-                modbusClient.WriteSingleCoil(int(self.startingAddressWrite.get()) - 1, dataToSend)
-        else:
-            if (numberOfLines > 1):
-                valueToWrite = list()
-                for i in range(1, numberOfLines+1):
-                    textFieltValues = int(self.requestTextField.get(str(i)+".0", str(i+1)+".0")[:-1])
-                    valueToWrite.append(textFieltValues)
-                modbusClient.WriteMultipleRegisters(int(self.startingAddressWrite.get()) - 1, valueToWrite)
-            else:              
-                textFieltValues = int(self.requestTextField.get('1.0', END)[:-1])
-                modbusClient.WriteSingleRegister(int(self.startingAddressWrite.get()) - 1, textFieltValues)
+                        dataToSend = 0
+                    modbusClient.WriteSingleCoil(int(self.startingAddressWrite.get()) - 1, dataToSend)
+            else:
+                if (numberOfLines > 1):
+                    valueToWrite = list()
+                    for i in range(1, numberOfLines+1):
+                        textFieltValues = int(self.requestTextField.get(str(i)+".0", str(i+1)+".0")[:-1])
+                        valueToWrite.append(textFieltValues)
+                    modbusClient.WriteMultipleRegisters(int(self.startingAddressWrite.get()) - 1, valueToWrite)
+                else:              
+                    textFieltValues = int(self.requestTextField.get('1.0', END)[:-1])
+                    modbusClient.WriteSingleRegister(int(self.startingAddressWrite.get()) - 1, textFieltValues)
+        except Exception as e:
+            tkinter.messagebox.showerror('Exception writing values to Server', str(e))
         modbusClient.close()
         
     def deleteValueToRequestList(self):

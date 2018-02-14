@@ -4,7 +4,9 @@ Created on 12.09.2016
 
 @author: Stefan Rossmann
 '''
-from ModbusClient import *
+
+# @UnresolvedImport
+from ModbusClient import *  # @UnresolvedImport
     
 modbusClient = ModbusClient('127.0.0.1', 502)
 modbusClient.Parity = Parity.odd
